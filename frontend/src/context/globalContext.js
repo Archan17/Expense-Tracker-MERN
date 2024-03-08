@@ -1,14 +1,45 @@
 import React, { useContext, useState } from "react";
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5005/api/v1/";
+const BASE_URL = "http://localhost:5004/api/v1/";
 
 const GlobalContext = React.createContext();
 
 export const GlobalProvider = ({ children }) => {
   const [incomes, setIncomes] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [blogs, setBlogs] = useState([]);
   const [error, setError] = useState(null);
+
+  const addBlogPost = async (blogPost) => {
+    try {
+      const response = await axios.post(`${BASE_URL}blog`, blogPost);
+      setBlogs((prevBlogs) => [...prevBlogs, response.data]); // Add new blog post to the state
+    } catch (error) {
+      setError(error.response.data.message);
+    }
+  };
+
+  // Function to get all blog posts
+  const getBlogPosts = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}blog`);
+      setBlogs(response.data);
+    } catch (error) {
+      setError(error.response.data.message);
+    }
+  };
+
+  const deleteBlogPost = async (id) => {
+    try {
+      await axios.delete(`${BASE_URL}blog/${id}`);
+      setBlogs((prevBlogs) =>
+        prevBlogs ? prevBlogs.filter((blog) => blog.id !== id) : []
+      );
+    } catch (error) {
+      setError(error.response.data.message);
+    }
+  };
 
   //calculate incomes
   const addIncome = async (income) => {
@@ -100,6 +131,10 @@ export const GlobalProvider = ({ children }) => {
         transactionHistory,
         error,
         setError,
+        addBlogPost,
+        getBlogPosts,
+        blogs,
+        deleteBlogPost,
       }}
     >
       {children}
